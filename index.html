@@ -5,15 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutoring Service</title>
     <link rel="stylesheet" href="css/style1.css">
-    <script src="JS/app.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body>
     <h1>SUBJECT TUITION</h1>
-    <div id="DisplayItems">
+    <br>
+    <div id="Home">
         <ul>
-            <li></li>
+            <li v-for="Tuitionclass in Tuitionclasses">
+                <div class="contents">
+                    <img v-bind:src="Tuitionclass.image">
+                    <p v-text="Tuitionclass.SubjectName"></p>
+                    <button @click="showClassInfo">
+                        <span v-if="!ShowDetails">Show Details</span>
+                        <span v-else>Hide</span>
+                    </button>
+                    <div id="TuitionDetails" v-if="ShowDetails">
+                        <p v-text="Tuitionclass.Location"></p>
+                        <p v-text="Tuitionclass.AvailableSeats"></p>
+                        <p >Price: {{Tuitionclass.Price}}</p>
+                    </div>
+                    
+                </div>
+            </li>
         </ul>
     </div>
+    <script src="JS/app.js"></script>
 </body>
 </html>
