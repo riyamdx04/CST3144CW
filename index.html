@@ -5,31 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutoring Service</title>
     <link rel="stylesheet" href="css/style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body>
-    <h1>SUBJECT TUITION</h1>
-    <br>
-    <div id="Home">
-        <ul>
-            <li v-for="Tuitionclass in Tuitionclasses">
-                <div class="contents">
-                    <img v-bind:src="Tuitionclass.image">
-                    <p v-text="Tuitionclass.SubjectName"></p>
-                    <button @click="showClassInfo">
-                        <span v-if="!ShowDetails">Show Details</span>
-                        <span v-else>Hide</span>
-                    </button>
-                    <div id="TuitionDetails" v-if="ShowDetails">
-                        <p v-text="Tuitionclass.Location"></p>
-                        <p v-text="Tuitionclass.AvailableSeats"></p>
-                        <p >Price: {{Tuitionclass.Price}}</p>
+    <div id="tuitionbooking">
+        <div id="navbar">
+            <h1>SUBJECT TUITION</h1>
+            <br>
+            <input type="text" placeholder="Enter subject to search..">
+            <button type="submit"><i class="fa fa-search"></i></button>
+            <button><i class="fa fa-sort"></i></button>
+            <button @click="goCheckOut" id="shoppingCart"><i class="fa fa-shopping-cart"></i></button>
+        </div>
+        <div v-if="showClasses" id="Home" >
+            <ul>
+                <li v-for="Tuitionclass in Tuitionclasses">
+                    <div class="contents">
+                        <img v-bind:src="Tuitionclass.image">
+                        <p v-text="Tuitionclass.SubjectName"></p>
+                        <div id="TuitionDetails">
+                            <p>Location: {{Tuitionclass.Location}}</p>
+                            <p >Price: Rs {{Tuitionclass.Price}}</p>
+                            <p>Available stock: {{Tuitionclass.AvailableSeats - cartItemCount}}</p>
+                            <p>{{cartProductCount(Tuitionclass.id)}} in cart</p>
+                            <button @click="AddToCart(Tuitionclass)" v-bind:disabled="!canAddToCart(Tuitionclass)"> Add to cart</button>
+                        </div>
                     </div>
-                    
-                </div>
-            </li>
-        </ul>
-    </div>
-    <script src="JS/app.js"></script>
+                </li>
+            </ul>
+        </div>
+
+        <!-- division for checkout section -->
+        <div v-else id="checkout" >
+            <h1> Checkout </h1>
+            <button @click="goCheckOut"> Return to Product Page</button>
+        </div>
+     </div>
+    <script>
+        const {createApp} = Vue
+const myApp = Vue.createApp({
+    data(){
+        return{
+            //boolean to go back and forth from main page to checkout
+            showClasses:true,
+
+            //array for cart
+            cart:[],
+
+            // array for classes
+            Tuitionclasses:[
+                {
+                    image:"images/arts.png",
+                    id:1101,
+                    SubjectName:"Arts and Design",
+                    Location:"Flacq",
+                    AvailableSeats: 5,
+                    Price: 450.00
+                },
+                {
+                    image:"images/english.png",
+                    id:1102,
+                    SubjectName:"English",
+                    Location:"St Pierre",
+                    AvailableSeats: 5,
+                    Price: 300.00
+                },
+                {
+                    image:"images/french.png",
+                    id:1103,
+                    SubjectName:"French",
+                    Location:"Lallematie",
+                    AvailableSeats: 5,
+                    Price: 300.00
+                },
+                {
+                    image:"images/biology.png",
+                    id:1104,
+                    SubjectName:"Biology",
+                    Location:"Providence",
+                    AvailableSeats: 5,
+                    Price: 500.00
+                },
+                {
+                    image:"images/chemistry.png",
+                    id:1105,
+                    SubjectName:"Chemistry",
+                    Location:"Mont Ida",
+                    AvailableSeats: 5,
+                    Price: 500.00
+                },
+                {
+                    image:"images/physics.png",
+                    id:1106,
+                    SubjectName:"Physics",
+                    Location:"Bramsthan",
+                    AvailableSeats: 5,
+                    Price: 600.00
+                },
+                {
+                    image:"images/economics.png",
+                    id:1107,
+                    SubjectName:"Economics",
+                    Location:"Quartier Militaire",
+                    AvailableSeats: 5,
+                    Price: 500.00
+                },
+                {
+                    image:"images/computer-science.png",
+                    id:1108,
+                    SubjectName:"Computer Science",
+                    Location:"Ollier",
+                    AvailableSeats: 5,
+                    Price: 600.00
+                },
+                {
+                    image:"images/mathematics.png",
+                    id:1109,
+                    SubjectName:"Mathematics",
+                    Location:"Rose Hill",
+                    AvailableSeats: 5,
+                    Price: 600.00
+                },
+                {
+                    image:"images/statistics.png",
+                    id:1110,
+                    SubjectName:"Mathematics Statistics 2",
+                    Location:"Vacoas",
+                    AvailableSeats: 5,
+                    Price: 600.00
+                }
+            ]
+        }
+    },
+    computed:{
+        //calculating the length of cart
+        cartItemCount(){
+            return this.cart.length
+        }
+    },
+    methods:{
+        //function to add to cart
+        AddToCart(Tuitionclass){
+                    this.cart.push(Tuitionclass.id)
+
+        },
+        //function for checkout button to go to checkout or return to main page
+        goCheckOut(){
+            this.showClasses = this.showClasses ? false: true
+        },
+        //counting the number of items in the cart
+        cartProductCount(id){
+            let count = 0
+                    for(let i = 0; i < this.cart.length; i++)
+                    {
+                        if (this.cart[i] === id)
+                        {
+                            count++
+                        }
+                    }
+                    return count
+        },
+        //function to allow adding to cart while the number of seats is still available
+        canAddToCart(Tuitionclass){
+            return this.cartProductCount(Tuitionclass.id) < Tuitionclass.AvailableSeats
+        }
+    }
+})
+myApp.mount('#tuitionbooking')
+    </script>
 </body>
 </html>
