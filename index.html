@@ -15,13 +15,13 @@
             <br>
             <input type="text" placeholder="Enter subject to search..">
             <button type="submit"><i class="fa fa-search"></i></button>
-
+            
             <!-- radio buttons to control order in ascending or descending -->
              <form>
-                <input type="radio" value="ASC" v-model="sortingDirection" value="ASC" @change="SortingBy">
+                <input type="radio" value="ASC" v-model="sortingDirection" @change="SortingBy">
                 <label>Ascending order</label>
 
-                <input type="radio" value="DESC" v-model="sortingDirection" value="DESC" @change="SortingBy">
+                <input type="radio" value="DESC" v-model="sortingDirection" @change="SortingBy">
                 <label>Descending order</label>
              </form>
 
@@ -61,17 +61,25 @@
         <!-- division for checkout section -->
         <div v-else id="checkout" >
             <h1> Checkout </h1>
-            <button @click="goCheckOut"> Return to Product Page</button>
+            <button id="back-btn" @click="goCheckOut"> Return to Product Page</button>
 
             <!-- div to show the products added to cart -->
             <div id="productList">
                 <h1>Items added to cart</h1>
+
+                <!-- re add option for item removed from cart -->
+                    <div v-if="itemRemoved" class="reAddItem">
+                        <p> removed from cart: {{itemRemoved.SubjectName}}. Do you wish to add back to cart?</p>
+                        <button @click="ReAdd"> Re-Add</button>
+                    </div>
+
                 <p v-if="cart.length===0">Your cart is empty</p>
+
                 <div id="cartDetails" v-else>
                     <table v-for="item in cartSummary" :key="item.id">
                         <tr>
                             <th>Product name: {{item.SubjectName}} </th>
-                            <td><button>Remove from cart</button></td>
+                            <td><button @click="rmvItem(item.id)">Remove from cart</button></td>
                         </tr>
                         <tr>
                             <th>Unit Price: {{item.Price}}</th>
@@ -84,6 +92,7 @@
                             <th> {{item.SubjectName}} x {{item.quantity}} = {{item.quantity * item.Price}}</th>
                         </tr>
                     </table>
+                    
                     <p><b>Your sub total is: {{CartTotal}}</b></p>
                 </div>
                 
@@ -93,17 +102,17 @@
               <div id="UserDetails">
                 <form>
                     <label>First name: </label>
-                    <input type="text" v-model="firstname">
+                    <input type="text" v-model="customer.firstname">
                     <br>
                     <label> Last name: </label>
-                    <input type="text" v-model="lastname">
+                    <input type="text" v-model="customer.lastname">
                     <br>
                     <br>
                     <label>Address: </label>
-                    <input type="text" v-model="address">
+                    <input type="text" v-model="customer.address">
                     <br>
                     <label>Phone Number: </label>
-                    <input type="text" v-model="phone">
+                    <input type="text" v-model="customer.phone">
                     <br>
                     <!-- show total price -->
                     <div id="Summary">
@@ -112,7 +121,7 @@
                         <p>Contact Details: {{customer.phone}}</p>
                         <p>Your Total Amount is: <b>{{CartTotal}}</b></p>
                     </div>
-                    <button>Confirm Booking?</button>
+                    <button @click="ConfirmBooking" v-bind:disabled="(customer.phone==='')">Confirm Booking?</button>
                 </form>
               </div>
         </div>
@@ -144,7 +153,10 @@
                 SortingKey:'',
 
                 //creating a default sorting direction before sorting is applied
-                sortingDirection: 'ASC'
+                sortingDirection: 'ASC',
+
+                //temporary variable for retrieving item removed from cart
+                itemRemoved: null
             }
         },
         computed:{
@@ -176,10 +188,9 @@
                     return this.cart.filter(itemId => itemId === id).length;
                 },
             //function to add to cart
-            async AddToCart(Tuitionclass){
+            AddToCart(Tuitionclass){
                         this.cart.push(Tuitionclass.id);
-                        Tuitionclass.AvailableSeats-= 1;
-
+                        Tuitionclass.AvailableSeats--;
             },
             //function for checkout button to go to checkout or return to main page
             async goCheckOut(){
@@ -223,13 +234,32 @@
                         this.Tuitionclasses.reverse();
                 }
             },
-             //item removed from cart is printed in a small  div along with a button to re add back the item
-            ReAdd(){
+            //remove item from cart
+            rmvItem(id){
+                const index = this.cart.indexOf(id);
+                //avoid index error
+                if(index===-1) 
+                return;
 
+                //tracking the id of hte item removed from cart to update the seats information
+                const deletedItem = this.Tuitionclasses.find(c=>c.id=== id)
+                this.cart.splice(index,1);
+                deletedItem.AvailableSeats++;
+                this.itemRemoved = deletedItem;
+
+            },
+             //item removed from cart is printed in a small div along with a button to re add back the item
+            ReAdd(){
+                if(this.itemRemoved && this.canAddToCart(this.itemRemoved)){
+                    this.AddToCart(this.itemRemoved);
+                }
+
+                //after re-appending the item back to cart, the temporary variable is re-initialised to null 
+                this.itemRemoved= null;
             },
 
             //function to confirm booking and display popup
-            ConfrmBooking(){
+            ConfirmBooking(){
                 
             }
 
