@@ -15,8 +15,30 @@
             <br>
             <input type="text" placeholder="Enter subject to search..">
             <button type="submit"><i class="fa fa-search"></i></button>
-            <button><i class="fa fa-sort"></i></button>
-            <button @click="goCheckOut" id="shoppingCart"><i class="fa fa-shopping-cart"></i></button>
+
+            <!-- radio buttons to control order in ascending or descending -->
+             <form>
+                <input type="radio" value="ASC" v-model="sortingDirection" value="ASC" @change="SortingBy">
+                <label>Ascending order</label>
+
+                <input type="radio" value="DESC" v-model="sortingDirection" value="DESC" @change="SortingBy">
+                <label>Descending order</label>
+             </form>
+
+            <!-- button for checkout -->
+             <!-- button is initially disabled when cart is empty "-->
+            <button id="shoppingCart"  @click="goCheckOut" v-bind:disabled="cartItemCount ==0">{{cartItemCount}}<i class="fa fa-shopping-cart"> go to checckout</i></button>
+            
+            <!-- dropdown for different sorts -->
+            <div class="dropdown">
+                <select v-model="SortingKey" @change="SortingBy">
+                    <option value="">Sort</option>
+                    <option value="SubjectName">SubjectName</option>
+                    <option value="Location">Location</option>
+                    <option value="Price">Prices</option>
+                    <option value="AvailableSeats">Seats Available</option>
+                </select>
+            </div>  
         </div>
         <div v-if="showClasses" id="Home" >
             <ul>
@@ -27,7 +49,7 @@
                         <div id="TuitionDetails">
                             <p>Location: {{Tuitionclass.Location}}</p>
                             <p >Price: Rs {{Tuitionclass.Price}}</p>
-                            <p>Available stock: {{Tuitionclass.AvailableSeats - cartItemCount}}</p>
+                            <p>Available seats: {{Tuitionclass.AvailableSeats}}</p>
                             <p>{{cartProductCount(Tuitionclass.id)}} in cart</p>
                             <button @click="AddToCart(Tuitionclass)" v-bind:disabled="!canAddToCart(Tuitionclass)"> Add to cart</button>
                         </div>
@@ -40,139 +62,146 @@
         <div v-else id="checkout" >
             <h1> Checkout </h1>
             <button @click="goCheckOut"> Return to Product Page</button>
+
+            <!-- div to show the products added to cart -->
+            <div id="productList">
+                <h1>Items added to cart</h1>
+                <p v-if="cart.length===0">Your cart is empty</p>
+                <div id="cartDetails" v-else>
+                    <table v-for="item in cartSummary" :key="item.id">
+                        <tr>
+                            <th>Product name: {{item.SubjectName}} </th>
+                            <td><button>Remove from cart</button></td>
+                        </tr>
+                        <tr>
+                            <th>Unit Price: {{item.Price}}</th>
+                        </tr>
+                        <tr>
+                            <th>Quantity: {{item.quantity}}</th>
+                            
+                        </tr>
+                        <tr>
+                            <th> {{item.SubjectName}} x {{item.quantity}} = {{item.quantity * item.Price}}</th>
+                        </tr>
+                    </table>
+                    <p><b>Your sub total is: {{CartTotal}}</b></p>
+                </div>
+                
+            </div>
+
+             <!-- user details -->
+              <div id="UserDetails">
+                <form>
+                    <label>First name: </label>
+                    <input type="text" v-model="firstname">
+                    <br>
+                    <label> Last name: </label>
+                    <input type="text" v-model="lastname">
+                    <br>
+                    <br>
+                    <label>Address: </label>
+                    <input type="text" v-model="address">
+                    <br>
+                    <label>Phone Number: </label>
+                    <input type="text" v-model="phone">
+                    <br>
+                    <!-- show total price -->
+                    <div id="Summary">
+                        <p>Customer name: {{fullName}}</p>
+                        <p>Customer Address: {{customer.address}}</p>
+                        <p>Contact Details: {{customer.phone}}</p>
+                        <p>Your Total Amount is: <b>{{CartTotal}}</b></p>
+                    </div>
+                    <button>Confirm Booking?</button>
+                </form>
+              </div>
         </div>
      </div>
-    <script>
-        const {createApp} = Vue
-const myApp = Vue.createApp({
-    data(){
-        return{
-            //boolean to go back and forth from main page to checkout
-            showClasses:true,
+    <script type="module">
+        import {TuitionArray} from './VueJS/products.js';
+        const {createApp} = Vue;
+        const myApp = Vue.createApp({
+        data(){
+            return{
+                //customer details for display
+                customer:{
+                    firstname:'',
+                    lastname:'',
+                    address:'',
+                    phone:''
+                },
 
-            //array for cart
-            cart:[],
+                //boolean to go back and forth from main page to checkout
+                showClasses:true,
 
-            // array for classes
-            Tuitionclasses:[
-                {
-                    image:"images/arts.png",
-                    id:1101,
-                    SubjectName:"Arts and Design",
-                    Location:"Flacq",
-                    AvailableSeats: 5,
-                    Price: 450.00
-                },
-                {
-                    image:"images/english.png",
-                    id:1102,
-                    SubjectName:"English",
-                    Location:"St Pierre",
-                    AvailableSeats: 5,
-                    Price: 300.00
-                },
-                {
-                    image:"images/french.png",
-                    id:1103,
-                    SubjectName:"French",
-                    Location:"Lallematie",
-                    AvailableSeats: 5,
-                    Price: 300.00
-                },
-                {
-                    image:"images/biology.png",
-                    id:1104,
-                    SubjectName:"Biology",
-                    Location:"Providence",
-                    AvailableSeats: 5,
-                    Price: 500.00
-                },
-                {
-                    image:"images/chemistry.png",
-                    id:1105,
-                    SubjectName:"Chemistry",
-                    Location:"Mont Ida",
-                    AvailableSeats: 5,
-                    Price: 500.00
-                },
-                {
-                    image:"images/physics.png",
-                    id:1106,
-                    SubjectName:"Physics",
-                    Location:"Bramsthan",
-                    AvailableSeats: 5,
-                    Price: 600.00
-                },
-                {
-                    image:"images/economics.png",
-                    id:1107,
-                    SubjectName:"Economics",
-                    Location:"Quartier Militaire",
-                    AvailableSeats: 5,
-                    Price: 500.00
-                },
-                {
-                    image:"images/computer-science.png",
-                    id:1108,
-                    SubjectName:"Computer Science",
-                    Location:"Ollier",
-                    AvailableSeats: 5,
-                    Price: 600.00
-                },
-                {
-                    image:"images/mathematics.png",
-                    id:1109,
-                    SubjectName:"Mathematics",
-                    Location:"Rose Hill",
-                    AvailableSeats: 5,
-                    Price: 600.00
-                },
-                {
-                    image:"images/statistics.png",
-                    id:1110,
-                    SubjectName:"Mathematics Statistics 2",
-                    Location:"Vacoas",
-                    AvailableSeats: 5,
-                    Price: 600.00
-                }
-            ]
-        }
-    },
-    computed:{
-        //calculating the length of cart
-        cartItemCount(){
-            return this.cart.length
-        }
-    },
-    methods:{
-        //function to add to cart
-        AddToCart(Tuitionclass){
-                    this.cart.push(Tuitionclass.id)
+                //array for cart
+                cart:[],
 
+                // array for classes
+                Tuitionclasses:TuitionArray,
+
+               
+            }
         },
-        //function for checkout button to go to checkout or return to main page
-        goCheckOut(){
-            this.showClasses = this.showClasses ? false: true
+        computed:{
+            //calculating the length of cart
+            cartItemCount(){
+                return this.cart.length
+            },
+
+            //cart summary allows to view the items added to cart and their pricing
+            cartSummary(){
+                return this.Tuitionclasses
+                    .map(p => ({ ...p, quantity: this.countInCart(p.id) }))
+                    .filter(p => p.quantity > 0);
+            },
+
+            //cart total would compute the total sum of the items added to cart
+            //.reduce is used to count from an initial value of 0 to the increments needed from the items added in cart
+            CartTotal(){
+                return this.cartSummary.reduce((sum, p) => sum + p.quantity * p.Price, 0);
+            },
+            //joining first name and last name of customer
+            fullName(){
+                return `${this.customer.firstname} ${this.customer.lastname}`.trim();
+            }
         },
-        //counting the number of items in the cart
-        cartProductCount(id){
-            let count = 0
-                    for(let i = 0; i < this.cart.length; i++)
-                    {
-                        if (this.cart[i] === id)
+        methods:{
+            //counting items the user actually picked
+            countInCart(id) {
+                    return this.cart.filter(itemId => itemId === id).length;
+                },
+            //function to add to cart
+            async AddToCart(Tuitionclass){
+                        this.cart.push(Tuitionclass.id);
+                        Tuitionclass.AvailableSeats-= 1;
+
+            },
+            //function for checkout button to go to checkout or return to main page
+            async goCheckOut(){
+                this.showClasses = this.showClasses ? false: true;
+            },
+            //counting the number of items in the cart
+            cartProductCount(id){
+                let count = 0
+                        for(let i = 0; i < this.cart.length; i++)
                         {
-                            count++
+                            if (this.cart[i] === id)
+                            {
+                                count++;
+                            }
                         }
-                    }
-                    return count
-        },
-        //function to allow adding to cart while the number of seats is still available
-        canAddToCart(Tuitionclass){
-            return this.cartProductCount(Tuitionclass.id) < Tuitionclass.AvailableSeats
-        }
-    }
-})
-myApp.mount('#tuitionbooking')
+                        return count;
+            },
+            //function to allow adding to cart while the number of seats is still available
+            canAddToCart(Tuitionclass){
+                return Tuitionclass.AvailableSeats > 0;
+                },
+            
+            }
+            
+        })
+        myApp.mount('#tuitionbooking')
     </script>
 </body>
 </html>
