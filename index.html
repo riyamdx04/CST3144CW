@@ -140,7 +140,11 @@
                 // array for classes
                 Tuitionclasses:TuitionArray,
 
-               
+                //creating specific features to display when sorting is applied
+                SortingKey:'',
+
+                //creating a default sorting direction before sorting is applied
+                sortingDirection: 'ASC'
             }
         },
         computed:{
@@ -197,6 +201,28 @@
             canAddToCart(Tuitionclass){
                 return Tuitionclass.AvailableSeats > 0;
                 },
+            //sorting function for features per feature
+            SortingBy(){
+                switch(this.SortingKey){
+                    case 'SubjectName':
+                        this.Tuitionclasses.sort((a,b) =>a.SubjectName.localeCompare(b.SubjectName));
+                        break;
+                    case 'AvailableSeats':
+                        this.Tuitionclasses.sort((a,b) =>a.AvailableSeats - b.AvailableSeats);
+                        break;
+                    case 'Price':
+                        this.Tuitionclasses.sort((a,b) =>a.Price - b.Price);
+                        break;
+                    case 'Location':
+                        this.Tuitionclasses.sort((a,b) =>a.Location.localeCompare(b.Location));
+                        break;
+                    default:
+                        return;
+                }
+                if (this.sortingDirection==='DESC'){
+                        this.Tuitionclasses.reverse();
+                }
+            },
             
             }
             
