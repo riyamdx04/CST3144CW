@@ -28,9 +28,14 @@ li{
 li button{
     width: 150px;
     font-size: 20px;
+    cursor: pointer;
     border-radius: 15px;
     background-color: rgb(255, 255, 255);
     box-shadow: 14px 8px 10px 0px rgba(0, 0, 0, 0.2);
+}
+
+li button:hover{
+    box-shadow: 4px 4px 10px 0px rgba(0, 0, 0, 12);
 }
 
 #navbar{
@@ -39,10 +44,21 @@ li button{
     padding-bottom: 10px;
     margin-bottom: 15px;
 }
-#navbar input{
+ input{
     width:auto;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 20px;
+}
+input[type="radio"]{
+  accent-color: #a06dda;
+}
+.dropdown select{
+    width:auto;
+    border-radius: 8px;
+    font-size: 17px;
+}
+.dropdown option{
+    background-color: #ded2eca8;
 }
 #navbar button{
     width:auto;
@@ -50,7 +66,7 @@ li button{
     border-radius: 10px;
 }
 
-#navbar button :hover{
+#navbar button:hover{
     cursor: pointer;
     box-shadow: 4px 4px 10px 0px rgba(0, 0, 0, 12);
 }
@@ -64,8 +80,42 @@ table{
     width: auto;
     display: inline-block;
     align-items: center;
-    border: 1px solid;
+    border: 2px solid;
+    border-color: white;
 }
 th{
+    padding-left: 10px;
+    padding-bottom: 10px;
     text-align: left;
+}
+/* checkout section */
+#checkout button{
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 15px;
+    background-color: rgb(255, 255, 255);
+}
+#checkout button:hover{
+    box-shadow: 4px 4px 10px 0px rgba(0, 0, 0, 12);
+}
+
+/* confirm booking section */
+.popupOverlay{
+    position:fixed;
+    top:0;
+    left: 0;
+    width: 100%;
+    height:100%;
+    background: rgb(0,0,0,0.6);
+    display:flex;
+    z-index: 1000;
+}
+
+.popupbox{
+    background:white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    overflow-y: auto;
 }

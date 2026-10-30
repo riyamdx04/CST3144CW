@@ -27,7 +27,7 @@
 
             <!-- button for checkout -->
              <!-- button is initially disabled when cart is empty "-->
-            <button id="shoppingCart"  @click="goCheckOut" v-bind:disabled="cartItemCount ==0">{{cartItemCount}}<i class="fa fa-shopping-cart"> go to checckout</i></button>
+            <button id="shoppingCart"  @click="goCheckOut" v-bind:disabled="cartItemCount ==0">{{cartItemCount}}<i class="fa fa-shopping-cart"> go to checkout</i></button>
             
             <!-- dropdown for different sorts -->
             <div class="dropdown">
@@ -66,13 +66,6 @@
             <!-- div to show the products added to cart -->
             <div id="productList">
                 <h1>Items added to cart</h1>
-
-                <!-- re add option for item removed from cart -->
-                    <div v-if="itemRemoved" class="reAddItem">
-                        <p> removed from cart: {{itemRemoved.SubjectName}}. Do you wish to add back to cart?</p>
-                        <button @click="ReAdd"> Re-Add</button>
-                    </div>
-
                 <p v-if="cart.length===0">Your cart is empty</p>
 
                 <div id="cartDetails" v-else>
@@ -121,10 +114,27 @@
                         <p>Contact Details: {{customer.phone}}</p>
                         <p>Your Total Amount is: <b>{{CartTotal}}</b></p>
                     </div>
-                    <button @click="ConfirmBooking" v-bind:disabled="(customer.phone==='')">Confirm Booking?</button>
+                    <button @click="ConfirmBooking" v-bind:disabled="!phoneCheck">Confirm Booking?</button>
                 </form>
               </div>
-        </div>
+            </div>
+              <div v-if="ShowBooking" class="popupOverlay">
+                <div class="popupbox">
+                    <h2>Booking was successful</h2>
+                    <p><b>Name:</b>{{booking.name}}</p>
+                    <p><b>Address:</b>{{booking.address}}</p>
+                    <p><b>Contact Details:</b>{{booking.phone}}</p>
+
+                    <h2>Items booked</h2>
+                    <ul>
+                        <li v-for="item in booking.items" :key="item.subject">
+                            {{item.subject}}          x {{item.quantity}} = Rs {{item.sumPerItem}} 
+                        </li>
+                    </ul>
+                    <p><b>Total Rs:</b></p>
+                    <button v-else @click="closePopup">Confirm</button>
+                </div>
+              </div>
      </div>
     <script type="module">
         import {TuitionArray} from './VueJS/products.js';
@@ -156,7 +166,13 @@
                 sortingDirection: 'ASC',
 
                 //temporary variable for retrieving item removed from cart
-                itemRemoved: null
+                itemRemoved: null,
+
+                //boolean to toggle the popup for booking
+                ShowBooking: false,
+
+                //class to store booking info
+                booking: null
             }
         },
         computed:{
@@ -177,9 +193,17 @@
             CartTotal(){
                 return this.cartSummary.reduce((sum, p) => sum + p.quantity * p.Price, 0);
             },
+
             //joining first name and last name of customer
             fullName(){
                 return `${this.customer.firstname} ${this.customer.lastname}`.trim();
+            },
+
+            //validation for phone number to be only of length 8 and of integers only
+            phoneCheck(){
+                if(/^\d{8}$/.test(this.customer.phone)){
+                    return true;
+                }
             }
         },
         methods:{
@@ -248,21 +272,54 @@
                 this.itemRemoved = deletedItem;
 
             },
-             //item removed from cart is printed in a small div along with a button to re add back the item
-            ReAdd(){
-                if(this.itemRemoved && this.canAddToCart(this.itemRemoved)){
-                    this.AddToCart(this.itemRemoved);
-                }
-
-                //after re-appending the item back to cart, the temporary variable is re-initialised to null 
-                this.itemRemoved= null;
+            //function to show booking info and display popup
+            ConfirmBooking(){
+                this.booking={
+                    name: this.fullName,
+                    address:this.customer.address,
+                    phone: this.customer.phone,
+                    items: this.cartSummary.map( i=>({
+                        subject: i.SubjectName,
+                        quantity: i.quantity,
+                        sumPerItem: (i.quantity * i.Price)
+                    })),
+                    toalSum: this.CartTotal
+                };
+                this.ShowBooking=true;
             },
 
-            //function to confirm booking and display popup
-            ConfirmBooking(){
-                
-            }
+            //function to close the popup
+            closePopup(){
+                //re initalising the values clear the popup info
+                this.ShowBooking= false;
+                this.booking= null;
 
+                //reset the details fields and cart for user
+                this.cart=[];
+                this.itemRemoved= null;
+                this.customer={
+                    firstname:'',
+                    lastname:'',
+                    address:'',
+                    phone:''
+                };
+                this.showClasses = true;
+            },
+            async fetchData(){
+                try{
+                    const url = "http://localhost:3000/lessons";
+                    const response = await fetch(url);
+
+                    if(!response.ok){
+                        throw new Error(`HTTP error! Page Status: ${response.status}`);
+                    }
+                    this.Tuitionclasses = await response.json();
+                    console.log(this.Tuitionclasses);
+                }
+                catch{
+                    
+                }
+            }
             }
             
         })

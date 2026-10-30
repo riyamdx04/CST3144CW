@@ -1,0 +1,20 @@
+export let teachers=[
+    {
+        id:'',
+        firstname:'',
+        lastname:'',
+        classes:[]
+    },
+    {
+        id:'',
+        firstname:'',
+        lastname:'',
+        classes:[]
+    },
+    {
+        id:'',
+        firstname:'',
+        lastname:'',
+        classes:[]
+    }
+]
