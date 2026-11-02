@@ -177,7 +177,11 @@
                 //class to store booking info
                 booking: null
             }
+            
         },
+        created(){
+                this.fetchData()
+            },
         computed:{
             //calculating the length of cart
             cartItemCount(){
