@@ -132,12 +132,12 @@
                         </li>
                     </ul>
                     <p><b>Total Rs:</b></p>
-                    <button v-else @click="closePopup">Confirm</button>
+                    <button @click="closePopup">Confirm</button>
                 </div>
               </div>
      </div>
     <script type="module">
-        import {TuitionArray} from './VueJS/products.js';
+        // import {TuitionArray} from './VueJS/products.js';
         const {createApp} = Vue;
         const myApp = Vue.createApp({
         data(){
@@ -155,9 +155,12 @@
 
                 //array for cart
                 cart:[],
+                
+                //lessons to be displayed from server
+                // lessons:[],
 
                 // array for classes
-                Tuitionclasses:TuitionArray,
+                Tuitionclasses:[],
 
                 //creating specific features to display when sorting is applied
                 SortingKey:'',
@@ -305,21 +308,40 @@
                 };
                 this.showClasses = true;
             },
-            async fetchData(){
-                try{
-                    const url = "http://localhost:3000/lessons";
-                    const response = await fetch(url);
 
-                    if(!response.ok){
-                        throw new Error(`HTTP error! Page Status: ${response.status}`);
-                    }
-                    this.Tuitionclasses = await response.json();
-                    console.log(this.Tuitionclasses);
+            //async function for checkout
+            async checkout(){
+                await fetch(`${"http://localhost:3000"}/orders`,{
+                    method: 'POST',
+                    headers: {'Content-Type': 'applicatio/json'},
+                    body: JSON.stringify({name,phone,lessonIDs, cart})
+                });
+
+                //aupdate the seats of lessons added to the cart
+                for (const id of cart){
+                    await fetch(`${"http://localhost:3000"}/lessons/${id}`,{
+                        method: 'PUT'
+                    });
                 }
-                catch{
-                    
-                }
-            }
+            },
+            async fetchData()
+                    {
+                        try{
+                            const url = "http://localhost:3000/M01015301/lessons"
+                            const response = await fetch(url)
+
+                            if (!response.ok){
+                                throw new Error(`HTTP error ! status: ${response.status}`)
+                            }
+
+                            this.Tuitionclasses = await response.json()
+                            console.log(this.Tuitionclasses)
+
+                        }catch(error)
+                        {
+                            console.log("Failed to fetch product data: ",  error)
+                        }
+                    }  
             }
             
         })
