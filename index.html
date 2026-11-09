@@ -114,7 +114,7 @@
                         <p>Contact Details: {{customer.phone}}</p>
                         <p>Your Total Amount is: <b>{{CartTotal}}</b></p>
                     </div>
-                    <button @click="ConfirmBooking" v-bind:disabled="!phoneCheck">Confirm Booking?</button>
+                    <button type="button" @click="ConfirmBooking" :disabled="!phoneCheck || cart.length===0">Confirm Booking?</button>
                 </form>
               </div>
             </div>
@@ -131,7 +131,7 @@
                             {{item.subject}}          x {{item.quantity}} = Rs {{item.sumPerItem}} 
                         </li>
                     </ul>
-                    <p><b>Total Rs:</b></p>
+                    <p><b>Total Rs:</b> {{booking.totalSum}}</p>
                     <button @click="closePopup">Confirm</button>
                 </div>
               </div>
@@ -139,6 +139,7 @@
     <script type="module">
         // import {TuitionArray} from './VueJS/products.js';
         const {createApp} = Vue;
+        const API = "http://localhost:3000/M01015301";
         const myApp = Vue.createApp({
         data(){
             return{
@@ -208,9 +209,7 @@
 
             //validation for phone number to be only of length 8 and of integers only
             phoneCheck(){
-                if(/^\d{8}$/.test(this.customer.phone)){
-                    return true;
-                }
+                return /^\d{8}$/.test(this.customer.phone)
             }
         },
         methods:{
@@ -280,19 +279,48 @@
 
             },
             //function to show booking info and display popup
-            ConfirmBooking(){
-                this.booking={
-                    name: this.fullName,
-                    address:this.customer.address,
-                    phone: this.customer.phone,
-                    items: this.cartSummary.map( i=>({
-                        subject: i.SubjectName,
-                        quantity: i.quantity,
-                        sumPerItem: (i.quantity * i.Price)
-                    })),
-                    toalSum: this.CartTotal
-                };
-                this.ShowBooking=true;
+            async ConfirmBooking(){
+                const items = this.cartSummary.map(i=>({
+                    lessonID:i.id,
+                    subject: i.SubjectName,
+                    noOfSeats: i.quantity
+                }));
+                try{
+                    //creating document for order placed to send to backend to save in DB
+                    const res = await fetch(`${API}/lessons/orders`,{
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            name: this.fullName,
+                            phone: this.customer.phone,
+                            address: this.customer.address,
+                            items
+                        })
+                    });
+                    if (!res.ok) throw new Error("Could not save order, try again!");
+                    
+                        //     //aupdate the seats of lessons added to the cart
+                    for (const item of items){
+                        const resSeats= await fetch(`${API}/lessons/${item.lessonID}`,{
+                            method: 'PUT',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({noOfSeats: item.noOfSeats})
+                        });
+                        if(!resSeats.ok) throw new Error("Could not update seats");
+                    }
+                    
+                    //popup information when booking has been made
+                    this.booking={
+                        name: this.fullName,
+                        address:this.customer.address,
+                        phone: this.customer.phone,
+                        items
+                    };
+                    this.ShowBooking=true;
+            }
+            catch(err){
+                console.error("Booking Failed: ",  err.message);
+            }
             },
 
             //function to close the popup
@@ -312,26 +340,10 @@
                 };
                 this.showClasses = true;
             },
-
-            //async function for checkout
-            async checkout(){
-                await fetch(`${"http://localhost:3000"}/orders`,{
-                    method: 'POST',
-                    headers: {'Content-Type': 'applicatio/json'},
-                    body: JSON.stringify({name,phone,lessonIDs, cart})
-                });
-
-                //aupdate the seats of lessons added to the cart
-                for (const id of cart){
-                    await fetch(`${"http://localhost:3000"}/lessons/${id}`,{
-                        method: 'PUT'
-                    });
-                }
-            },
             async fetchData()
                     {
                         try{
-                            const url = "http://localhost:3000/M01015301/lessons"
+                            const url = `${API}/lessons`
                             const response = await fetch(url)
 
                             if (!response.ok){
@@ -345,7 +357,7 @@
                         {
                             console.log("Failed to fetch product data: ",  error)
                         }
-                    }  
+                    }
             }
             
         })
