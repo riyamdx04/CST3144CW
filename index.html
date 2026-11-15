@@ -280,7 +280,9 @@
             },
             //function to show booking info and display popup
             async ConfirmBooking(){
-                const items = this.cartSummary.map(i=>({
+                const lessons = this.cartSummary;
+                const items = lessons.map(i=>({
+                    _id: i._id,
                     lessonID:i.id,
                     subject: i.SubjectName,
                     noOfSeats: i.quantity
@@ -299,12 +301,12 @@
                     });
                     if (!res.ok) throw new Error("Could not save order, try again!");
                     
-                        //     //aupdate the seats of lessons added to the cart
-                    for (const item of items){
-                        const resSeats= await fetch(`${API}/lessons/${item.lessonID}`,{
+                    //aupdate the seats of lessons added to the cart
+                    for (const lesson of lessons){
+                        const resSeats= await fetch(`${API}/lessons/${lesson._id}`,{
                             method: 'PUT',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({noOfSeats: item.noOfSeats})
+                            body: JSON.stringify({AvailableSeats: lesson.AvailableSeats})
                         });
                         if(!resSeats.ok) throw new Error("Could not update seats");
                     }
@@ -314,7 +316,12 @@
                         name: this.fullName,
                         address:this.customer.address,
                         phone: this.customer.phone,
-                        items
+                        items: lessons.map(i=>({
+                            subject: i.SubjectName,
+                            quantity: i.quantity,
+                            totalPerItem: i.quantity * i.Price
+                        })),
+                        totalSum: this.CartTotal
                     };
                     this.ShowBooking=true;
             }
