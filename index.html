@@ -32,7 +32,6 @@
             <!-- dropdown for different sorts -->
             <div class="dropdown">
                 <select v-model="SortingKey" @change="SortingBy">
-                    <option value="">Sort</option>
                     <option value="SubjectName">SubjectName</option>
                     <option value="Location">Location</option>
                     <option value="Price">Prices</option>
@@ -109,9 +108,6 @@
                     <br>
                     <!-- show total price -->
                     <div id="Summary">
-                        <p>Customer name: {{fullName}}</p>
-                        <p>Customer Address: {{customer.address}}</p>
-                        <p>Contact Details: {{customer.phone}}</p>
                         <p>Your Total Amount is: <b>{{CartTotal}}</b></p>
                     </div>
                     <button type="button" @click="ConfirmBooking" :disabled="!phoneCheck || cart.length===0">Confirm Booking?</button>
@@ -128,7 +124,7 @@
                     <h2>Items booked</h2>
                     <ul>
                         <li v-for="item in booking.items" :key="item.subject">
-                            {{item.subject}}          x {{item.quantity}} = Rs {{item.sumPerItem}} 
+                            {{item.subject}}          x {{item.quantity}} = Rs {{item.totalPerItem}} 
                         </li>
                     </ul>
                     <p><b>Total Rs:</b> {{booking.totalSum}}</p>
@@ -137,7 +133,6 @@
               </div>
      </div>
     <script type="module">
-        // import {TuitionArray} from './VueJS/products.js';
         const {createApp} = Vue;
         const API = "http://localhost:3000/M01015301";
         const myApp = Vue.createApp({
@@ -156,9 +151,6 @@
 
                 //array for cart
                 cart:[],
-                
-                //lessons to be displayed from server
-                // lessons:[],
 
                 // array for classes
                 Tuitionclasses:[],
