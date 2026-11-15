@@ -13,8 +13,8 @@
         <div id="navbar">
             <h1>SUBJECT TUITION</h1>
             <br>
-            <input type="text" placeholder="Enter subject to search..">
-            <button type="submit"><i class="fa fa-search"></i></button>
+            <input type="text" placeholder="Enter subject to search.." @input="search" v-model="searchText">
+            <button type="button" @click="search"><i class="fa fa-search"></i></button>
             
             <!-- radio buttons to control order in ascending or descending -->
              <form>
@@ -41,7 +41,7 @@
         </div>
         <div v-if="showClasses" id="Home" >
             <ul>
-                <li v-for="Tuitionclass in Tuitionclasses">
+                <li v-for="Tuitionclass in Tuitionclasses" :key="Tuitionclass._id">
                     <div class="contents">
                         <img v-bind:src="Tuitionclass.image">
                         <p v-text="Tuitionclass.SubjectName"></p>
@@ -145,6 +145,8 @@
                     address:'',
                     phone:''
                 },
+                //keyword entered by user
+                searchText:'',
 
                 //boolean to go back and forth from main page to checkout
                 showClasses:true,
@@ -342,21 +344,35 @@
             async fetchData()
                     {
                         try{
-                            const url = `${API}/lessons`
-                            const response = await fetch(url)
+                            const url = `${API}/lessons`;
+                            const response = await fetch(url);
 
                             if (!response.ok){
-                                throw new Error(`HTTP error ! status: ${response.status}`)
+                                throw new Error(`HTTP error ! status: ${response.status}`);
                             }
 
-                            this.Tuitionclasses = await response.json()
-                            console.log(this.Tuitionclasses)
+                            this.Tuitionclasses = await response.json();
 
                         }catch(error)
                         {
-                            console.log("Failed to fetch product data: ",  error)
+                            console.log("Failed to fetch product data: ",  error);
                         }
-                    }
+                    },
+            async search(){
+                try{
+                    const response = await fetch(`${API}/lessons/search?q=${encodeURIComponent(this.searchText)}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    //replace the list the list with the result
+                    this.Tuitionclasses = await response.json();
+                    
+                    //keeping the sorting applied to the search results
+                    this.SortingBy();
+                }
+                catch(err){
+                    console.log("search has Failed: ", err);
+                }
+            }
             }
             
         })
