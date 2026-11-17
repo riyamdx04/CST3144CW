@@ -44,23 +44,6 @@
                 <button type="button" @click="toggleTeachers"> See teachers</button>  
         </div>
 
-        <!-- challenge 2: Teachers -->
-        <div v-if="showTeachers" id="Teachers">
-            <h2> Our teachers</h2>
-            <ul>
-                <li v-for="teacher in Teachers" :key="teacher.Teacherid">
-                    <div class="contents">
-                        <span class="fa fa-user"></span>
-                        <div id="TeacherDetails">
-                            <p>Teacher name: {{teacher.firstname}} {{teacher.lastname}}</p>
-                            <p>Classes taught: {{teacherSubjects(teacher)}}</p>
-                            <button>See classes</button>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
-
         <!-- list of all subjects -->
             <ul>
                 <li v-for="Tuitionclass in Tuitionclasses" :key="Tuitionclass._id">
@@ -77,6 +60,48 @@
                     </div>
                 </li>
             </ul>
+        </div>
+
+        <!-- challenge 2: Teachers -->
+        <div v-else-if="showTeachers" id="Teachers">
+            <h2> Our teachers</h2>
+            <br>
+            <button type="button" @click="toggleTeachers"> Back to lessons </button>
+
+            <ul>
+                <li v-for="teacher in Teachers" :key="teacher.Teacherid">
+                    <div class="contents">
+                        <span class="fa fa-user"></span>
+                        <div id="TeacherDetails">
+                            <p>Teacher name: {{teacher.firstname}} {{teacher.lastname}}</p>
+                            <p>Classes taught: {{teacherSubjects(teacher)}}</p>
+                            <button type="button" @click="chooseTeacher(teacher)">See classes</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- go to lesson chosen for that teacher -->
+             <div v-if="selectedTeacher">
+                <h3>Lesson taught by: {{selectedTeacher.firstname}} {{selectedTeacher.lastname}}</h3>
+                    <!-- list of all subjects -->
+                    <ul>
+                        <li v-for="Tuitionclass in teacherLessons" :key="Tuitionclass._id">
+                            <div class="contents">
+                                <img v-bind:src="Tuitionclass.image">
+                                <p v-text="Tuitionclass.SubjectName"></p>
+                                <div id="TuitionDetails">
+                                    <p>Location: {{Tuitionclass.Location}}</p>
+                                    <p >Price: Rs {{Tuitionclass.Price}}</p>
+                                    <p>Available seats: {{Tuitionclass.AvailableSeats}}</p>
+                                    <p>{{cartProductCount(Tuitionclass.id)}} in cart</p>
+                                    <button @click="AddToCart(Tuitionclass)" v-bind:disabled="!canAddToCart(Tuitionclass)"> Add to cart</button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+
+             </div>
         </div>
 
         <!-- division for checkout section -->
@@ -236,6 +261,11 @@
             //validation for phone number to be only of length 8 and of integers only
             phoneCheck(){
                 return /^\d{8}$/.test(this.customer.phone)
+            },
+            //function to obtain all subjects taught by one teacher
+            teacherLessons(){
+                if(!this.selectedTeacher) return [];
+                return this.Tuitionclasses.filter(c=> this.selectedTeacher.id.includes(c._id));
             }
         },
         methods:{
@@ -257,6 +287,7 @@
             //function to open and close teacher secton
             async toggleTeachers(){
                 this.showTeachers = !this.showTeachers;
+                this.showClasses = !this.showTeachers;
                 this.selectedTeacher = null;
             },
             //counting the number of items in the cart
@@ -433,6 +464,10 @@
                 .filter(c => teacher.id.includes(c._id))
                 .map(c=> c.SubjectName)
                 .join(", ")
+            },
+            //function to toggle the 'see classes' for one teacher
+            chooseTeacher(teacher){
+                this.selectedTeacher = teacher;
             }
             }
             
