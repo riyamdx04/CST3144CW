@@ -10,36 +10,58 @@
 </head>
 <body>
     <div id="tuitionbooking">
-        <div id="navbar">
-            <h1>SUBJECT TUITION</h1>
-            <br>
-            <input type="text" placeholder="Enter subject to search.." @input="search" v-model="searchText">
-            <button type="button" @click="search"><i class="fa fa-search"></i></button>
-            
-            <!-- radio buttons to control order in ascending or descending -->
-             <form>
-                <input type="radio" value="ASC" v-model="sortingDirection" @change="SortingBy">
-                <label>Ascending order</label>
-
-                <input type="radio" value="DESC" v-model="sortingDirection" @change="SortingBy">
-                <label>Descending order</label>
-             </form>
-
-            <!-- button for checkout -->
-             <!-- button is initially disabled when cart is empty "-->
-            <button id="shoppingCart"  @click="goCheckOut" v-bind:disabled="cartItemCount ==0">{{cartItemCount}}<i class="fa fa-shopping-cart"> go to checkout</i></button>
-            
-            <!-- dropdown for different sorts -->
-            <div class="dropdown">
-                <select v-model="SortingKey" @change="SortingBy">
-                    <option value="SubjectName">SubjectName</option>
-                    <option value="Location">Location</option>
-                    <option value="Price">Prices</option>
-                    <option value="AvailableSeats">Seats Available</option>
-                </select>
-            </div>  
-        </div>
         <div v-if="showClasses" id="Home" >
+            <div id="navbar">
+                <h1>SUBJECT TUITION</h1>
+                <br>
+                <input type="text" placeholder="Enter subject to search.." @input="search" v-model="searchText">
+
+                <!-- challenge 1: search functionality -->
+                <button type="button" @click="search"><i class="fa fa-search"></i></button>
+                <br>
+                <!-- radio buttons to control order in ascending or descending -->
+                <form>
+                    <input type="radio" value="ASC" v-model="sortingDirection" @change="SortingBy">
+                    <label>Ascending order</label>
+
+                    <input type="radio" value="DESC" v-model="sortingDirection" @change="SortingBy">
+                    <label>Descending order</label>
+                </form>
+                <br>
+                <!-- dropdown for different sorts -->
+                <div class="dropdown">
+                    <select v-model="SortingKey" @change="SortingBy">
+                        <option value="SubjectName">SubjectName</option>
+                        <option value="Location">Location</option>
+                        <option value="Price">Prices</option>
+                        <option value="AvailableSeats">Seats Available</option>
+                    </select>
+                </div>
+                <br>
+                <!-- button for checkout -->
+                <!-- button is initially disabled when cart is empty "-->
+                <button id="shoppingCart"  @click="goCheckOut" v-bind:disabled="cartItemCount ==0">{{cartItemCount}}<i class="fa fa-shopping-cart"> go to checkout</i></button>
+                <button type="button" @click="toggleTeachers"> See teachers</button>  
+        </div>
+
+        <!-- challenge 2: Teachers -->
+        <div v-if="showTeachers" id="Teachers">
+            <h2> Our teachers</h2>
+            <ul>
+                <li v-for="teacher in Teachers" :key="teacher.Teacherid">
+                    <div class="contents">
+                        <span class="fa fa-user"></span>
+                        <div id="TeacherDetails">
+                            <p>Teacher name: {{teacher.firstname}} {{teacher.lastname}}</p>
+                            <p>Classes taught: {{teacherSubjects(teacher)}}</p>
+                            <button>See classes</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- list of all subjects -->
             <ul>
                 <li v-for="Tuitionclass in Tuitionclasses" :key="Tuitionclass._id">
                     <div class="contents">
@@ -151,12 +173,21 @@
                 //boolean to go back and forth from main page to checkout
                 showClasses:true,
 
+                //boolean to go to teachers section
+                showTeachers: false,
+
                 //array for cart
                 cart:[],
 
                 // array for classes
                 Tuitionclasses:[],
 
+                //array for tecahers
+                Teachers:[],
+
+                //selection for teacher
+                selectedTeacher: null,
+                
                 //creating specific features to display when sorting is applied
                 SortingKey:'',
 
@@ -175,7 +206,8 @@
             
         },
         created(){
-                this.fetchData()
+                this.fetchData();
+                this.fetchTeachers();
             },
         computed:{
             //calculating the length of cart
@@ -218,7 +250,14 @@
             },
             //function for checkout button to go to checkout or return to main page
             async goCheckOut(){
+                //ensuring the tecaher is not opened when clicked on checkout
+                this.showTeachers= false;
                 this.showClasses = this.showClasses ? false: true;
+            },
+            //function to open and close teacher secton
+            async toggleTeachers(){
+                this.showTeachers = !this.showTeachers;
+                this.selectedTeacher = null;
             },
             //counting the number of items in the cart
             cartProductCount(id){
@@ -341,6 +380,8 @@
                 };
                 this.showClasses = true;
             },
+
+            //fetching the data for all lessons 
             async fetchData()
                     {
                         try{
@@ -358,6 +399,7 @@
                             console.log("Failed to fetch product data: ",  error);
                         }
                     },
+            //challenge 1: search functionality fetch function
             async search(){
                 try{
                     const response = await fetch(`${API}/lessons/search?q=${encodeURIComponent(this.searchText)}`);
@@ -372,6 +414,25 @@
                 catch(err){
                     console.log("search has Failed: ", err);
                 }
+            },
+
+            //challenge 2: teachers fetch function
+            async fetchTeachers(){
+                try{
+                    const res = await fetch(`${API}/teachers`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    this.Teachers = await res.json();
+                }
+                catch(err){
+                    console.log("Failed to fetch teacher data: ", err);
+                }
+            },
+            //displaying the subjectnames from the products collection using the _id in MogoDB
+            teacherSubjects(teacher){
+                return this.Tuitionclasses
+                .filter(c => teacher.id.includes(c._id))
+                .map(c=> c.SubjectName)
+                .join(", ")
             }
             }
             
