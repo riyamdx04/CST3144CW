@@ -1,19 +1,21 @@
 body{
     text-align: center;
+    margin: 0;
+    min-height: 100vh;
+    /* background-image: linear-gradient(to bottom, rgb(241, 235, 224), rgb(208, 193, 233)); */
+    background: linear-gradient(rgb(241, 235, 224), rgb(208, 193, 233));
+    
 }
 *{
     box-sizing: border-box;
-}
-#tuitionbooking{
-    background-image: linear-gradient(to bottom, rgb(241, 235, 224), rgb(208, 193, 233));
 }
 
 ul{
     list-style: none;
     display:grid;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-evenly;
     grid-template-columns: repeat(3,1fr);
-    padding:0 40px;
     margin:0;
     gap:16px
 }
@@ -22,7 +24,6 @@ li{
     padding-bottom: 15px;
     width: 400px;
     border-radius: 20px;
-    align-items: center;
     background-color: rgb(230, 241, 247);
 }
 li button{
@@ -40,7 +41,9 @@ li button:hover{
 
 #navbar{
     align-items: center;
+    display:flex;
     background-color:rgb(204, 237, 255);
+    justify-content: space-evenly;
     padding-bottom: 10px;
     margin-bottom: 15px;
 }
